@@ -62,8 +62,13 @@ bool typeidequal( const T1& p1, const T2& p2 )
 {
 	return ( typeid(p1) == typeid(p2) );
 }
-
+#else
+bool typeidequal( CScriptVar& a, CScriptVar& b )
+{
+	return a.getTypeId() == b.getTypeId();
+}
 #endif
+
 
 #ifndef ASSERT
 #	define ASSERT(X) assert(X)

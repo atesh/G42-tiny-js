@@ -6,7 +6,7 @@ the initial version of Tiny-js by Gordon Williams. Tiny-js
 (http://code.google.com/p/tiny-js/) is a very promising project 
 whose intention was providing a simple javascript interpreter in 
 C++ language. It is very nice, because the implementation of
-the interpreter is placed only in two files (C++ source and
+the interpreter takes only two files (C++ source and
 header). Perfect example of demonstrating the possibilities of this
 interpreter is a Mobile-Tiny-Js project 
 (http://code.google.com/p/mobile-tiny-js/).
@@ -24,4 +24,10 @@ to the mobile platforms which often do not implement the std
 library correctly. The 43TinyJs project also implements its own
 memory management that supports multi threading and can be ported
 to microcomputer devices without memory management.
+
+
+TODO list:
+  - implement custom std functions
+  - remove RTTI dependency
+  - remove exceptions depedencny
 

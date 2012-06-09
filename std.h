@@ -136,7 +136,8 @@ namespace std
 		}
 		void resize(int a)
 		{
-			_ASSERT(0);
+			_ASSERT(a <= data.GetLength());
+			data = data.Left(a);
 		}
 	};
 
@@ -392,11 +393,15 @@ namespace std
 		_ASSERT(0);
 	}
 
+	/*
 	template <class T1, class T2>
-	bool typeidequal( const T1& p1, const T2& p2 )
+	bool typeidequal( T1& p1, T2& p2 )
 	{
-		_ASSERT(0);
-		return false;
-	}
+		bool b1=( p1.findChild("__proto__") == p2.findChild("__proto__") );
+		bool b2= typeid(p1) == typeid(p2);
+		_ASSERT( b1==b2 );
+		return b1;
+	}*/
+
 }
 #endif

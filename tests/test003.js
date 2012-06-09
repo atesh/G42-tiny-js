@@ -1,15 +1,5 @@
-// with-test
-
-var a;
-
-with(Math) a=PI;
-
-var b = { get_member : function() { return this.member;}, member:41 };
-
-with(b) {
-  let a = get_member(); //<--- a is local for this block
-  var c = a+1;
-}
-
-
-result = a == Math.PI && c == 42;
+// simple for loop
+var a = 0;
+var i;
+for (i=1;i<10;i++) a = a + i;
+result = a==45;

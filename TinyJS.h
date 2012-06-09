@@ -525,6 +525,17 @@ class CTinyJS;
 /// CScriptVar
 //////////////////////////////////////////////////////////////////////////
 
+//////////////////////////////////////////////////////////////////////////
+#define define_dummy_t(t1) struct t1##_t{}; extern t1##_t t1
+#define declare_dummy_t(t1) t1##_t t1
+#define define_newScriptVar_Fnc(t1, ...) CScriptVarPtr newScriptVar(__VA_ARGS__)
+#define define_newScriptVar_NamedFnc(t1, ...) CScriptVarPtr newScriptVar##t1(__VA_ARGS__)
+#define define_ScriptVarPtr_Type(t1) class CScriptVar##t1; typedef CScriptVarPointer<CScriptVar##t1> CScriptVar##t1##Ptr
+#define define_ScriptVarId(id) public: virtual const char* getTypeId() { return #id; }
+
+#define define_DEPRECATED_newScriptVar_Fnc(t1, ...) CScriptVarPtr DEPRECATED("newScriptVar("#__VA_ARGS__") is deprecated use constScriptVar("#__VA_ARGS__") instead") newScriptVar(__VA_ARGS__)
+//////////////////////////////////////////////////////////////////////////
+
 typedef	std::vector<CScriptVarLink*> SCRIPTVAR_CHILDS_t;
 typedef	SCRIPTVAR_CHILDS_t::iterator SCRIPTVAR_CHILDS_it;
 typedef	SCRIPTVAR_CHILDS_t::const_iterator SCRIPTVAR_CHILDS_cit;
@@ -540,6 +551,7 @@ public:
 	virtual CScriptVarPtr clone()=0;
 
 	/// Type
+	virtual const char* getTypeId() { /*_ASSERT(0);*/ return "CScriptVar"; }
 	virtual bool isObject();	///< is CScriptVarObject
 	virtual bool isError();	///< is CScriptVarObject
 	virtual bool isArray();		///< is CScriptVarArray
@@ -641,13 +653,12 @@ public:
 //////////////////////////////////////////////////////////////////////////
 /// CScriptVarPrimitive
 //////////////////////////////////////////////////////////////////////////
-
 class CScriptVarPrimitive : public CScriptVar {
+	define_ScriptVarId(CScriptVarPrimitive)
 protected:
 	CScriptVarPrimitive(CTinyJS *Context, const CScriptVarPtr &Prototype) : CScriptVar(Context, Prototype) {}
 	CScriptVarPrimitive(const CScriptVarPrimitive &Copy) : CScriptVar(Copy) {}
 public:
-
 };
 ////////////////////////////////////////////////////////////////////////// 
 /// CScriptVarPtr 
@@ -854,14 +865,6 @@ private:
 };
 inline CScriptVarPtr::CScriptVarPtr(const CScriptVarLinkPtr &Link) : var(0) { if(Link) { var = Link->getVarPtr()->ref(); } }
 
-//////////////////////////////////////////////////////////////////////////
-#define define_dummy_t(t1) struct t1##_t{}; extern t1##_t t1
-#define declare_dummy_t(t1) t1##_t t1
-#define define_newScriptVar_Fnc(t1, ...) CScriptVarPtr newScriptVar(__VA_ARGS__)
-#define define_newScriptVar_NamedFnc(t1, ...) CScriptVarPtr newScriptVar##t1(__VA_ARGS__)
-#define define_ScriptVarPtr_Type(t1) class CScriptVar##t1; typedef CScriptVarPointer<CScriptVar##t1> CScriptVar##t1##Ptr
-
-#define define_DEPRECATED_newScriptVar_Fnc(t1, ...) CScriptVarPtr DEPRECATED("newScriptVar("#__VA_ARGS__") is deprecated use constScriptVar("#__VA_ARGS__") instead") newScriptVar(__VA_ARGS__)
 ////////////////////////////////////////////////////////////////////////// 
 /// CScriptVarObject
 //////////////////////////////////////////////////////////////////////////
@@ -870,6 +873,7 @@ define_dummy_t(Object);
 define_ScriptVarPtr_Type(Object);
 
 class CScriptVarObject : public CScriptVar {
+	define_ScriptVarId(CScriptVarObject)
 protected:
 	CScriptVarObject(CTinyJS *Context);
 	CScriptVarObject(CTinyJS *Context, const CScriptVarPtr &Prototype) : CScriptVar(Context, Prototype) {}
@@ -889,6 +893,7 @@ public:
 	virtual std::string getVarType(); // { return "object"; }
 
 	virtual CScriptVarPtr _toString(bool execute, int radix=0);
+
 private:
 	friend define_newScriptVar_Fnc(Object, CTinyJS *Context, Object_t);
 	friend define_newScriptVar_Fnc(Object, CTinyJS *Context, Object_t, const CScriptVarPtr &);
@@ -905,6 +910,7 @@ define_dummy_t(ObjectWrap);
 define_ScriptVarPtr_Type(ObjectWrap);
 
 class CScriptVarObjectWrap : public CScriptVarObject {
+	define_ScriptVarId(CScriptVarObjectWrap)
 protected:
 	CScriptVarObjectWrap(CTinyJS *Context, const CScriptVarPtr &Value);// : CScriptVarObject(Context), value(Value) {}
 	CScriptVarObjectWrap(const CScriptVarObjectWrap &Copy) : CScriptVarObject(Copy), value(Copy.value) {} ///< Copy protected -> use clone for public
@@ -930,6 +936,7 @@ inline define_newScriptVar_Fnc(ObjectWrap, CTinyJS *Context, ObjectWrap_t, const
 define_ScriptVarPtr_Type(Error);
 
 class CScriptVarError : public CScriptVarObject {
+	define_ScriptVarId(CScriptVarError)
 protected:
 	CScriptVarError(CTinyJS *Context, ERROR_TYPES type, const char *message, const char *file, int line, int column);// : CScriptVarObject(Context), value(Value) {}
 	CScriptVarError(const CScriptVarError &Copy) : CScriptVarObject(Copy) {} ///< Copy protected -> use clone for public
@@ -955,6 +962,7 @@ define_dummy_t(Accessor);
 define_ScriptVarPtr_Type(Accessor);
 
 class CScriptVarAccessor : public CScriptVar {
+	define_ScriptVarId(CScriptVarAccessor)
 protected:
 	CScriptVarAccessor(CTinyJS *Context);
 	CScriptVarAccessor(const CScriptVarAccessor &Copy) : CScriptVar(Copy) {} ///< Copy protected -> use clone for public
@@ -983,6 +991,7 @@ inline define_newScriptVar_Fnc(Accessor, CTinyJS *Context, Accessor_t) { return 
 define_dummy_t(Array);
 define_ScriptVarPtr_Type(Array);
 class CScriptVarArray : public CScriptVar {
+	define_ScriptVarId(CScriptVarArray)
 protected:
 	CScriptVarArray(CTinyJS *Context);
 	CScriptVarArray(const CScriptVarArray &Copy) : CScriptVar(Copy) {} ///< Copy protected -> use clone for public
@@ -1009,6 +1018,7 @@ inline define_newScriptVar_Fnc(Array, CTinyJS *Context, Array_t) { return new CS
 define_dummy_t(Null);
 define_ScriptVarPtr_Type(Null);
 class CScriptVarNull : public CScriptVar {
+	define_ScriptVarId(CScriptVarNull)
 protected:
 	CScriptVarNull(CTinyJS *Context);
 	CScriptVarNull(const CScriptVarNull &Copy) : CScriptVar(Copy) {} ///< Copy protected -> use clone for public
