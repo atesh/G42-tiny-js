@@ -174,7 +174,40 @@ namespace std
 		typedef size_t size_type;
 		typedef T* iterator;
 		typedef const T* const_iterator;
-		typedef T* reverse_iterator;
+		//typedef T* reverse_iterator;
+		struct reverse_iterator 
+		{
+			typedef T* type;
+			type m;
+
+			reverse_iterator(type p)
+			{
+				m = p;
+			}
+
+			type operator ++(int)
+			{
+				return --m;
+			}
+
+			type operator ++()
+			{
+				return m--;
+			}
+			type operator +(int n)
+			{
+				return m-n;
+			}
+			bool operator != (const reverse_iterator& p)
+			{
+				return m != p.m;
+			}
+			T* operator->() const
+			{
+				return m;
+			}
+
+		};
 
 	public:
 		vector()
@@ -214,13 +247,11 @@ namespace std
 		}
 		reverse_iterator rbegin()
 		{
-			_ASSERT(0);
-			return 0;
+			return size() > 0 ? &data[size()-1] : NULL;
 		}
 		reverse_iterator rend()
 		{
-			_ASSERT(0);
-			return 0;
+			return size() > 0 ? &data[0] : NULL;
 		}
 		void insert( iterator at, const T& itm)
 		{
