@@ -39,13 +39,40 @@
 #ifndef TINYJS_H
 #define TINYJS_H
 
-#include <string>
-#include <vector>
-#include <map>
-#include <set>
-#include "pool_allocator.h"
+//#define USING_POOL_ALLOCATOR
+#define USING_STD
+
+#ifdef USING_STD
+#	include <string>
+#	include <vector>
+#	include <map>
+#	include <set>
+#else
+#	include "std.h"
+#endif
 #include <stdint.h>
 #include <assert.h>
+
+#ifdef USING_POOL_ALLOCATOR
+#	include "pool_allocator.h"
+#else
+// simple malloc replacement for pool allocator
+template<typename T, int num_objects=64>
+class fixed_size_object {
+public:
+	static void* operator new(size_t size) {
+		return malloc(size);
+	}
+	static void* operator new(size_t size, void* p) {
+		return p;
+	}
+	static void operator delete(void* p, size_t size) {
+		size = size;
+		free(p);
+	}
+};
+#endif
+
 
 #ifndef ASSERT
 #	define ASSERT(X) assert(X)

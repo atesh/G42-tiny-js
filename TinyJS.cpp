@@ -49,46 +49,15 @@
 #include <climits>
 #include <cmath>
 #include <memory> // for auto_ptr
-#include <algorithm>
 
 #include "TinyJS.h"
 
+#ifdef USING_STD
+#include <algorithm>
+#endif
+
 #ifndef ASSERT
 #	define ASSERT(X) assert(X)
-#endif
-#if 0
-inline CScriptVarSmartLink &CScriptVarSmartLink::operator = (CScriptVarPtr Var) {
-	if(link && !link->isOwned()) delete link; 
-	link = new CScriptVarLink(Var);
-/*
-	if (!link || link->isOwned()) 
-		link = new CScriptVarLink(Var);
-	else {
-		link->replaceWith(Var);
-		link->name=TINYJS_TEMP_NAME;
-	} 
-*/
-	return *this;
-}
-inline CScriptVarSmartLink &CScriptVarSmartLink::operator = (const CScriptVarSmartLink &Link) { 
-	if(link && !link->isOwned()) delete link; 
-	link = Link.link; 
-	((CScriptVarSmartLink &)Link).link = 0; // explicit cast to a non const ref
-	return *this;
-}
-
-// this operator corresponds "CLEAN(link); link = Link;"
-inline CScriptVarSmartLink &CScriptVarSmartLink::operator = (CScriptVarLink *Link) {
-	if(link && !link->isOwned()) delete link; 
-	link = Link; 
-	return *this;
-}
-// this operator corresponds "link->replaceWith(Link->get())"
-inline CScriptVarSmartLink &CScriptVarSmartLink::operator <<(CScriptVarSmartLink &Link) {
-	ASSERT(link && Link.link);
-	link->replaceWith(Link.link);
-	return *this;
-}
 #endif
 
 using namespace std;
