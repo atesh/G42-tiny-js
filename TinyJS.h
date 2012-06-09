@@ -40,7 +40,7 @@
 #define TINYJS_H
 
 //#define USING_POOL_ALLOCATOR
-#define USING_STD
+//#define USING_STD
 
 #ifdef USING_STD
 #	include <string>

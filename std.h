@@ -1,14 +1,11 @@
-#ifndef MOSYNC_STRING
-#define MOSYNC_STRING
+#ifndef GABO_STD
+#define GABO_STD
 
 #ifndef _AFXDLL
 #define _AFXDLL
 #endif
 #include <afxtempl.h>
 #include <math.h>
-//#include <MAUtil/String.h>
-//#include <MAUtil/util.h>
-//#include <conprint.h>
 
 namespace std
 {
@@ -201,11 +198,10 @@ namespace std
 		void pop_back() { data.RemoveAt(size()-1); }
 		T& operator[](size_type index) { return data[index]; }
 		const T& operator[](size_type index) const { return data[index]; }
-		iterator begin() { return &data[0]; }
-		iterator end() { return &data[0] + size(); }
-
-		const_iterator begin() const { return &data[0]; }
-		const_iterator end() const { return &data[0] + size(); }
+		iterator begin() { return size() > 0 ? &data[0] : NULL; }
+		iterator end() { return size() > 0 ? &data[0] + size() : NULL; }
+		const_iterator begin() const { return size() > 0 ? &data[0] : NULL; }
+		const_iterator end() const { return size() > 0 ? &data[0] + size() : NULL; }
 
 		bool empty() { return data.IsEmpty() ? true : false; }
 		T& front() { return data[0]; }
@@ -228,7 +224,11 @@ namespace std
 		}
 		void insert( iterator at, const T& itm)
 		{
-			_ASSERT(0);
+			if (!at)
+				data.Add( itm );
+			else
+				data.InsertAt( at - begin(), itm);
+			//_ASSERT(0);
 			//data.InsertAt( at, *itm );
 		}
 		void erase(iterator it)
@@ -269,24 +269,64 @@ namespace std
 		return end;
 	}
 
-	template <class iterator>
-	void sort( iterator begin, iterator end)
+	template <class T> struct sortfunc
 	{
-		_ASSERT(0);
+		typedef T item;
+		static int compare(const void* pa, const void* pb)
+		{
+			// ascending order
+			const T& a = *((T*)pa);
+			const T& b = *((T*)pb);
+			return a-b;
+		}
+	};
+	
+	template <class T>
+	void sort( T* begin, T* end)
+	{		
+		qsort(begin, end-begin, sizeof(int), sortfunc<T>::compare);
 	}
 
-	template <class iterator, class T>
-	iterator lower_bound (iterator begin, iterator end, const T& v)
+	template <class ForwardIterator, class T>
+	ForwardIterator lower_bound ( ForwardIterator first, ForwardIterator last, const T& value )
 	{
-		_ASSERT(0);
-		return end;
+		ForwardIterator it;
+		/*iterator_traits<ForwardIterator>::difference_type*/int count, step;
+		count = last-first;
+		while (count>0)
+		{
+			it = first; 
+			step=count/2; 
+			it += step;
+			if (*it<value)                   // or: if (comp(*it,value)), for the comp version
+			{ 
+				first=++it; 
+				count-=step+1;  
+			} else 
+				count=step;
+		}
+		return first;
 	}
 
-	template <class iterator, class T, class FCompare>
-	iterator lower_bound (iterator begin, iterator end, const T& v, FCompare f)
+	template <class ForwardIterator, class T, class FCompare>
+	ForwardIterator lower_bound ( ForwardIterator first, ForwardIterator last, const T& value, FCompare f )
 	{
-		_ASSERT(0);
-		return end;
+		ForwardIterator it;
+		/*iterator_traits<ForwardIterator>::difference_type*/int count, step;
+		count = last-first;
+		while (count>0)
+		{
+			it = first; 
+			step=count/2; 
+			it += step;
+			if ( f(*it, value) )                   // or: if (comp(*it,value)), for the comp version
+			{ 
+				first=++it; 
+				count-=step+1;  
+			} else 
+				count=step;
+		}
+		return first;
 	}
 
 	template<class T>
