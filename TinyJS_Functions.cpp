@@ -37,11 +37,15 @@
  */
 
 
-#include <math.h>
-#include <cstdlib>
-#include <sstream>
-#include <time.h>
+#include "TinyJS.h"
 #include "TinyJS_Functions.h"
+#ifdef USING_STD
+#	include <algorithm>
+#	include <math.h>
+#	include <cstdlib>
+#	include <sstream>
+#	include <time.h>
+#endif
 
 using namespace std;
 // ----------------------------------------------- Actual Functions

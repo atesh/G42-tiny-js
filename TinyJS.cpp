@@ -41,6 +41,10 @@
 #		define DEBUG_MEMORY 1
 #	endif
 #endif
+
+#include "TinyJS.h"
+
+#ifdef USING_STD
 #include <cassert>
 #include <cstring>
 #include <sstream>
@@ -49,11 +53,16 @@
 #include <climits>
 #include <cmath>
 #include <memory> // for auto_ptr
-
-#include "TinyJS.h"
+#endif
 
 #ifdef USING_STD
 #include <algorithm>
+template <class T1, class T2>
+bool typeidequal( const T1& p1, const T2& p2 )
+{
+	return ( typeid(p1) == typeid(p2) );
+}
+
 #endif
 
 #ifndef ASSERT
@@ -644,7 +653,7 @@ CScriptToken::CScriptToken(CScriptLex *l, int Match, int Alternate) : line(l->cu
 		stringData = new CScriptTokenDataString(l->tkStr);
 		stringData->ref();
 	} else if(LEX_TOKEN_DATA_FUNCTION(token)) {
-		fncData = new CScriptTokenDataFnc;
+		fncData = new CScriptTokenDataFnc(); // no constructor called ???
 		fncData->ref();
 	}
 	if(Match>=0)
@@ -3197,7 +3206,7 @@ CScriptVarPtr CTinyJS::mathsOp(bool &execute, const CScriptVarPtr &A, const CScr
 	if (op == LEX_TYPEEQUAL || op == LEX_NTYPEEQUAL) {
 		// check type first, then call again to check data
 		if(A->isNaN() || B->isNaN()) return constFalse;
-		if( (typeid(*A.getVar()) == typeid(*B.getVar())) ^ (op != LEX_TYPEEQUAL) )
+		if( (typeidequal(*A.getVar(), *B.getVar())) ^ (op != LEX_TYPEEQUAL) )
 			return mathsOp(execute, A, B, op == LEX_TYPEEQUAL ? LEX_EQUAL : LEX_NEQUAL);
 		return constFalse;
 	}

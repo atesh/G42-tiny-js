@@ -68,12 +68,14 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="std.cpp" />
     <ClCompile Include="TinyJS.cpp" />
     <ClCompile Include="TinyJS_Functions.cpp" />
     <ClCompile Include="TinyJS_MathFunctions.cpp" />
     <ClCompile Include="TinyJS_StringFunctions.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="std.h" />
     <ClInclude Include="TinyJS.h" />
     <ClInclude Include="TinyJS_Functions.h" />
     <ClInclude Include="TinyJS_MathFunctions.h" />

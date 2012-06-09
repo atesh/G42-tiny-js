@@ -27,8 +27,10 @@
  * SOFTWARE.
  */
 
-#include <algorithm>
 #include "TinyJS.h"
+#ifdef USING_STD
+#	include <algorithm>
+#endif
 
 using namespace std;
 // ----------------------------------------------- Actual Functions

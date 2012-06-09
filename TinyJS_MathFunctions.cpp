@@ -38,10 +38,11 @@
  * SOFTWARE.
  */
 
-#include <math.h>
-#include <cstdlib>
-#include <sstream>
+//#include <math.h>
+//#include <cstdlib>
+//#include <sstream>
 #include <ctime>
+#include "TinyJS.h"
 #include "TinyJS_MathFunctions.h"
 
 using namespace std;

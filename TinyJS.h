@@ -380,6 +380,11 @@ public:
 	std::string name;
 	STRING_VECTOR_t arguments;
 	TOKEN_VECT body;
+
+	CScriptTokenDataFnc() : CScriptTokenData()
+	{
+	}
+
 private:
 };
 
@@ -434,6 +439,7 @@ class CScriptTokenizer
 {
 public:
 	struct ScriptTokenPosition {
+		ScriptTokenPosition() { tokens = NULL; }
 		ScriptTokenPosition(TOKEN_VECT *Tokens) : tokens(Tokens), pos(tokens->begin())/*, currentLine(0)*//*, currentColumn(0)*/ {}
 		bool operator ==(const ScriptTokenPosition &eq) { return pos == eq.pos; }
 		ScriptTokenPosition &operator =(const ScriptTokenPosition &copy) { 
