@@ -87,6 +87,86 @@ using namespace std;
 
 // ----------------------------------------------------------------------------------- Memory Debug
 
+#ifndef USING_EXCEPTIONS
+class CError
+{
+	CScriptException* m_pException;
+	CScriptVarPtr* m_pVarPtException;
+
+public:
+	CError()
+	{
+		m_pException = NULL;
+	}
+	~CError()
+	{
+		m_pException = NULL;
+		if ( m_pVarPtException )
+		{
+			delete m_pVarPtException;
+			m_pVarPtException = NULL;
+		}
+	}
+	void Throw( CScriptVarPtr& pVarPtException )
+	{
+		m_pVarPtException = new CScriptVarPtr( pVarPtException );
+	}
+	void Throw( CScriptException* pException = NULL)
+	{
+		if ( pException == NULL )
+			pException = UnknownException();
+		_ASSERT( m_pException == NULL );
+		m_pException = pException;
+	}
+	bool Any() 
+	{
+		return (m_pException || m_pVarPtException);
+	}
+	bool Is(CScriptVarPtr& myException) 
+	{
+		if ( m_pVarPtException )
+		{
+			myException = *m_pVarPtException;
+			return true;
+		}
+		return false;
+	}
+	bool Is(CScriptException* myException) 
+	{
+		if ( m_pException )
+		{
+			*myException = *m_pException;
+			return true;
+		}
+		return false;
+	}
+	static CError& getInstance()
+	{
+		static CError err;
+		return err;
+	}
+	static CScriptException* UnknownException()
+	{
+		static CScriptException myInstance(Error, "Unknown", "", 0, 0);
+		return &myInstance;
+	}
+};
+
+#define _try for (int __temp=0; __temp<1; __temp++)
+#define _catch(type, name) type name = CError::getInstance().Get; if ( CError::getInstance().Is(name) )
+
+#define _catchall(e) if (CError::getInstance().Any())
+#define _ectl() if (CError::getInstance().Any()) break
+#define _throw CError::getInstance().Throw
+
+#else
+#define _try try
+#define _catch(type, name) catch (type name)
+#define _catchall(e) catch (e)
+#define _throw throw 
+#define _ectl()
+#endif
+
 //#define DEBUG_MEMORY 1
 
 #if DEBUG_MEMORY
@@ -803,7 +883,7 @@ CScriptTokenizer::CScriptTokenizer(const char *Code, const string &File, int Lin
 	tokenizeCode(lexer);
 }
 void CScriptTokenizer::tokenizeCode(CScriptLex &Lexer) {
-	try {
+	_try {
 		l=&Lexer;
 		tokens.clear();
 		tokenScopeStack.clear();
@@ -812,17 +892,20 @@ void CScriptTokenizer::tokenizeCode(CScriptLex &Lexer) {
 		if(l->tk == '§') { // special-Token at Start means the code begins not at Statement-Level
 			l->match('§');
 			tokenizeLiteral(tokens, blockStart, marks, labels, loopLabels, 0);
+			_ectl();
 		} else do {
 			tokenizeStatement(tokens, blockStart, marks, labels, loopLabels, 0);
+			_ectl();
 		} while (l->tk!=LEX_EOF);
+		_ectl();
 		pushToken(tokens, LEX_EOF); // add LEX_EOF-Token
 		TOKEN_VECT(tokens).swap(tokens);//	tokens.shrink_to_fit();
 		pushTokenScope(tokens);
 		currentFile = l->currentFile;
 		tk = getToken().token;
-	} catch (...) {
+	} _catchall (...) {
 		l=0;
-		throw;
+		_throw;
 	}
 }
 
@@ -2990,16 +3073,17 @@ void CTinyJS::execute(const string &Code, const string &File, int Line, int Colu
 CScriptVarLink CTinyJS::evaluateComplex(CScriptTokenizer &Tokenizer) {
 	CScriptVarLinkPtr v;
 	t = &Tokenizer;
-	try {
+	_try {
 		bool execute = true;
 		do {
 			v = execute_statement(execute);
+			_ectl();
 			while (t->tk==';') t->match(';'); // skip empty statements
 		} while (t->tk!=LEX_EOF);
-	} catch (...) {
+	} _catchall (...) {
 		runtimeFlags = 0; // clean up runtimeFlags
 		t=0; // clean up Tokenizer
-		throw; // 
+		_throw; // 
 	}
 	t=0;
 	
@@ -3128,18 +3212,18 @@ CScriptVarPtr CTinyJS::callFunction(bool &execute, const CScriptVarFunctionPtr &
 	CScopeControl ScopeControl(this);
 	ScopeControl.addFncScope(functionRoot);
 	if (Function->isNative()) {
-		try {
+		_try {
 			CScriptVarFunctionNativePtr(Function)->callFunction(functionRoot);
 			runtimeFlags = old_function_runtimeFlags | (runtimeFlags & RUNTIME_THROW); // restore runtimeFlags
 			if(runtimeFlags & RUNTIME_THROW)
 				execute = false;
-		} catch (CScriptVarPtr v) {
+		} _catch (CScriptVarPtr, v) {
 			if(runtimeFlags & RUNTIME_CAN_THROW) {
 				runtimeFlags |= RUNTIME_THROW;
 				execute = false;
 				exceptionVar = v;
 			} else
-				throw new CScriptException(SyntaxError, "uncaught exception: '"+v->getString()+"' in: native function '"+Function->getFunctionData()->name+"'");
+				_throw (new CScriptException(SyntaxError, "uncaught exception: '"+v->getString()+"' in: native function '"+Function->getFunctionData()->name+"'"));
 		}
 	} else {
 		/* we just want to execute the block, but something could
@@ -4738,28 +4822,35 @@ void CTinyJS::native_eval(const CFunctionsScopePtr &c, void *data) {
 	CScriptVarLinkPtr returnVar;
 	CScriptTokenizer *oldTokenizer = t; t=0;
 	runtimeFlags &= ~RUNTIME_CAN_RETURN; // we can't return a function from eval-code
-	try {
+	_try {
 		CScriptTokenizer Tokenizer(Code.c_str(), "eval");
+		_ectl();
 		t = &Tokenizer;
 		bool execute = true;
 		do {
 			returnVar = execute_statement(execute);
-			while (t->tk==';') t->match(';'); // skip empty statements
+			_ectl();
+			while (t->tk==';') 
+			{
+				t->match(';'); // skip empty statements
+				_ectl();
+			}
+			_ectl();
 		} while (t->tk!=LEX_EOF);
-	} catch (CScriptException *e) { // script exceptions
+	} _catch (CScriptException*, e) { // script exceptions
 		t = oldTokenizer; // restore tokenizer
 		scopes.push_back(scEvalScope); // restore Scopes;
 		if(runtimeFlags & RUNTIME_CAN_THROW) { // an Error in eval is allways catchable
 			CScriptVarPtr E = newScriptVarError(this, e->errorType, e->message.c_str(), e->fileName.c_str(), e->lineNumber, e->column);
 			delete e;
-			throw E;
+			_throw(E);
 		} else
-			throw e;
-	} catch (...) { // all other exceptions
+			_throw(e);
+	} _catchall (...) { // all other exceptions
 		t = oldTokenizer; // restore tokenizer
 		scopes.push_back(scEvalScope); // restore Scopes;
 		throw;
-}
+	}
 	t = oldTokenizer; // restore tokenizer
 	scopes.push_back(scEvalScope); // restore Scopes;
 	if(returnVar)
@@ -4803,15 +4894,16 @@ void CTinyJS::native_JSON_parse(const CFunctionsScopePtr &c, void *data) {
 	// "§" is a spezal-token - it's for the tokenizer and means the code begins not in Statement-level
 	CScriptVarLinkPtr returnVar;
 	CScriptTokenizer *oldTokenizer = t; t=0;
-	try {
+	_try {
 		CScriptTokenizer Tokenizer(Code.c_str(), "JSON.parse", 0, -1);
 		t = &Tokenizer;
 		bool execute = true;
 		returnVar = execute_literals(execute);
+		_ectl();
 		t->match(LEX_EOF);
-	} catch (CScriptException *e) {
+	} _catch (CScriptException *, e) {
 		t = oldTokenizer;
-		throw e;
+		_throw (e);
 	}
 	t = oldTokenizer;
 

@@ -265,7 +265,8 @@ namespace std
 		}
 		void erase(iterator it)
 		{
-			_ASSERT(0);
+			_ASSERT(it);
+			data.RemoveAt( it - begin());
 		}
 	};
 

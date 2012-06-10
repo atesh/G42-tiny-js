@@ -27,7 +27,10 @@ to microcomputer devices without memory management.
 
 
 TODO list:
-  - implement custom std functions
-  - remove RTTI dependency
-  - remove exceptions depedencny
-
+  - pass all test (31, 32 failed) - 40/42 done
+  - implement custom std functions - 90% done
+  - remove RTTI dependency - 100% done
+  - remove exceptions depedencny - 30% done
+  - remove variadic macros - 100% done
+	- MSVC2005 compatibility
+	- GCC compatibility (ARM -fno-exceptions -fno-rtti)
